@@ -69,3 +69,5 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+// Compare this snippet from frontend/src/App.jsx:
+// import { useEffect, useState } from "react";
