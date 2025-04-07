@@ -1,5 +1,5 @@
-function createPage() {
+function CreatePage() {
   return <div>CreateaPage</div>;
 }
 
-export default createPage;
+export default CreatePage;
