@@ -1,65 +1,59 @@
-import { Container, SimpleGrid, Text, VStack } from "@chakra-ui/react";
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useProductStore } from "../store/product";
-import ProductCard from "../components/ProductCard";
+import { create } from "zustand";
 
-const HomePage = () => {
-  const { fetchProducts, products } = useProductStore();
+export const useProductStore = create((set) => ({
+  products: [],
+  setProducts: (products) => set({ products }),
+  createProduct: async (newProduct) => {
+    if (!newProduct.name || !newProduct.image || !newProduct.price) {
+      return { success: false, message: "Please fill in all fields." };
+    }
+    const res = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newProduct),
+    });
+    const data = await res.json();
+    set((state) => ({ products: [...state.products, data.data] }));
+    return { success: true, message: "Product created successfully" };
+  },
+  fetchProducts: async () => {
+    const res = await fetch("/api/products");
+    const data = await res.json();
+    set({ products: data.data });
+  },
+  deleteProduct: async (pid) => {
+    const res = await fetch(`/api/products/${pid}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (!data.success) return { success: false, message: data.message };
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-  console.log("products", products);
+    // update the ui immediately, without needing a refresh
+    set((state) => ({
+      products: state.products.filter((product) => product._id !== pid),
+    }));
+    return { success: true, message: data.message };
+  },
+  updateProduct: async (pid, updatedProduct) => {
+    const res = await fetch(`/api/products/${pid}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedProduct),
+    });
+    const data = await res.json();
+    if (!data.success) return { success: false, message: data.message };
 
-  return (
-    <Container maxW="container.xl" py={12}>
-      <VStack spacing={8}>
-        <Text
-          fontSize={"30"}
-          fontWeight={"bold"}
-          bgGradient={"linear(to-r, cyan.400, blue.500)"}
-          bgClip={"text"}
-          textAlign={"center"}
-        >
-          Current Products 🚀
-        </Text>
+    // update the ui immediately, without needing a refresh
+    set((state) => ({
+      products: state.products.map((product) =>
+        product._id === pid ? data.data : product
+      ),
+    }));
 
-        <SimpleGrid
-          columns={{
-            base: 1,
-            md: 2,
-            lg: 3,
-          }}
-          spacing={10}
-          w={"full"}
-        >
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </SimpleGrid>
-
-        {products.length === 0 && (
-          <Text
-            fontSize="xl"
-            textAlign={"center"}
-            fontWeight="bold"
-            color="gray.500"
-          >
-            No products found 😢{" "}
-            <Link to={"/create"}>
-              <Text
-                as="span"
-                color="blue.500"
-                _hover={{ textDecoration: "underline" }}
-              >
-                Create a product
-              </Text>
-            </Link>
-          </Text>
-        )}
-      </VStack>
-    </Container>
-  );
-};
-export default HomePage;
+    return { success: true, message: data.message };
+  },
+}));
