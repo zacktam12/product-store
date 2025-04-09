@@ -8,7 +8,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useProductStore } from "../store/product";
 
 const CreatePage = () => {
@@ -20,6 +20,14 @@ const CreatePage = () => {
   const toast = useToast();
 
   const { createProduct } = useProductStore();
+
+  useEffect(() => {
+    console.log("CreatePage component mounted or updated");
+    // You can add any side effects here, such as fetching initial data
+    return () => {
+      console.log("CreatePage component unmounted");
+    };
+  }, []); // Empty dependency array ensures this runs only on mount and unmount
 
   const handleAddProduct = async () => {
     const { success, message } = await createProduct(newProduct);
