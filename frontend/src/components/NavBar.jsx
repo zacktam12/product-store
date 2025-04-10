@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import {
   Button,
   Container,
@@ -14,6 +15,13 @@ import { LuSun } from "react-icons/lu";
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
+
+  useEffect(() => {
+    console.log("Navbar component mounted");
+    return () => {
+      console.log("Navbar component unmounted");
+    };
+  }, []);
 
   return (
     <Container maxW={"1140px"} px={4}>
